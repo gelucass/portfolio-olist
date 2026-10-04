@@ -1,0 +1,5 @@
+.venv/
+raw/
+pedidos_olist.csv
+.DS_Store
+__pycache__/
