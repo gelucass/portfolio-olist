@@ -1,0 +1,17 @@
+version: 2
+
+models:
+  - name: int_itens_agregados_por_pedido
+    columns:
+      - name: pedido_id
+        data_tests: [unique, not_null]
+  - name: int_categoria_principal_por_pedido
+    columns:
+      - name: pedido_id
+        data_tests: [unique, not_null]
+      - name: categoria
+        data_tests: [not_null]
+  - name: int_avaliacoes_por_pedido
+    columns:
+      - name: pedido_id
+        data_tests: [unique, not_null]

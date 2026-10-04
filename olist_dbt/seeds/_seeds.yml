@@ -1,0 +1,13 @@
+version: 2
+
+seeds:
+  - name: palavras_acentuadas
+    description: Palavras dos nomes de categoria que vêm sem acento na base original e a grafia correta.
+    columns:
+      - name: palavra
+        data_tests: [unique, not_null]
+  - name: status_pedido
+    description: Tradução dos status de pedido para português.
+    columns:
+      - name: status_origem
+        data_tests: [unique, not_null]

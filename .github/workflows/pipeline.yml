@@ -1,0 +1,58 @@
+name: pipeline
+
+# Todo push na main roda o pipeline inteiro e só publica o painel se todos os testes do dbt passarem.
+# Em pull requests roda os testes, sem publicar.
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Instalar dependências
+        run: pip install -r requirements.txt
+
+      - name: dbt build (modelos + testes)
+        working-directory: olist_dbt
+        run: dbt build --profiles-dir .
+
+      - name: dbt docs
+        working-directory: olist_dbt
+        run: dbt docs generate --static --profiles-dir .
+
+      - name: Exportar painel e CSV do Looker
+        run: python scripts/exportar.py
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: _site
+
+  deploy:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

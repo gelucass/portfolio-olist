@@ -1,0 +1,31 @@
+version: 2
+
+models:
+  - name: fct_pedidos
+    description: Uma linha por pedido de jan/2017 a ago/2018, com valores, entrega e avaliação. Também é exportada como CSV para o Looker Studio.
+    columns:
+      - name: pedido_id
+        data_tests: [unique, not_null]
+      - name: estado
+        data_tests: [not_null]
+      - name: status
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [Entregue, Enviado, Cancelado, Indisponível, Faturado, Em processamento, Criado, Aprovado]
+      - name: valor_total
+        description: Valor dos produtos + frete.
+        data_tests: [not_null]
+      - name: dias_entrega
+        description: Dias completos entre a compra e a entrega. Nulo se o pedido não foi entregue.
+      - name: is_atrasado
+        description: Entregue depois da data prometida ao cliente. Nulo se o pedido não foi entregue.
+      - name: nota_avaliacao
+        description: Média das avaliações do pedido (1 a 5). Nulo se não houve avaliação.
+
+  - name: mart_painel_mensal
+    description: Somas e contagens por mês × estado × categoria, lidas pelo painel web.
+    data_tests:
+      - combinacao_unica:
+          arguments:
+            columns: [mes_compra, estado, categoria]

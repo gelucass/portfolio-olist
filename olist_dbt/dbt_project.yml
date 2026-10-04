@@ -1,0 +1,23 @@
+name: olist
+version: "1.0.0"
+profile: olist
+
+model-paths: ["models"]
+seed-paths: ["seeds"]
+macro-paths: ["macros"]
+test-paths: ["tests"]
+target-path: "target"
+clean-targets: ["target", "dbt_packages"]
+
+vars:
+  data_inicio: "2017-01-01"   # base tem poucos pedidos em 2016
+  data_fim: "2018-09-01"      # e quase nenhum após ago/2018
+
+models:
+  olist:
+    staging:
+      +materialized: view
+    intermediate:
+      +materialized: view
+    marts:
+      +materialized: table

@@ -1,0 +1,22 @@
+version: 2
+
+sources:
+  - name: olist
+    description: Dataset público Olist (Kaggle), convertido para Parquet por scripts/converter_raw.py. Todas as colunas chegam como texto; a tipagem é feita no staging.
+    meta:
+      external_location: "../data/raw/{name}.parquet"
+    tables:
+      - name: orders
+        columns:
+          - name: order_id
+            data_tests: [unique, not_null]
+      - name: order_items
+      - name: products
+        columns:
+          - name: product_id
+            data_tests: [unique, not_null]
+      - name: customers
+        columns:
+          - name: customer_id
+            data_tests: [unique, not_null]
+      - name: order_reviews

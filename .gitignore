@@ -1,5 +1,15 @@
 .venv/
-raw/
-pedidos_olist.csv
+/raw/
+/pedidos_olist.csv
 .DS_Store
 __pycache__/
+
+# gerados pelo pipeline
+_site/
+exports/
+*.duckdb
+*.duckdb.wal
+olist_dbt/target/
+olist_dbt/logs/
+olist_dbt/dbt_packages/
+olist_dbt/.user.yml

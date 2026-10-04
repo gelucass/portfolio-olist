@@ -1,0 +1,42 @@
+version: 2
+
+models:
+  - name: stg_olist__pedidos
+    description: Um registro por pedido, com datas tipadas.
+    columns:
+      - name: pedido_id
+        data_tests: [unique, not_null]
+      - name: status_origem
+        data_tests:
+          - relationships:
+              arguments:
+                to: ref('status_pedido')
+                field: status_origem
+  - name: stg_olist__itens_pedido
+    description: Um registro por item de pedido.
+    data_tests:
+      - combinacao_unica:
+          arguments:
+            columns: [pedido_id, item_seq]
+    columns:
+      - name: valor_produto
+        data_tests: [not_null]
+  - name: stg_olist__produtos
+    columns:
+      - name: produto_id
+        data_tests: [unique, not_null]
+  - name: stg_olist__clientes
+    columns:
+      - name: cliente_id
+        data_tests: [unique, not_null]
+      - name: estado
+        data_tests: [not_null]
+  - name: stg_olist__avaliacoes
+    description: Um pedido pode ter mais de uma avaliação.
+    columns:
+      - name: nota
+        data_tests:
+          - accepted_values:
+              arguments:
+                values: [1, 2, 3, 4, 5]
+                quote: false

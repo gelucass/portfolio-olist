@@ -1,0 +1,9 @@
+status_origem,status
+delivered,Entregue
+shipped,Enviado
+canceled,Cancelado
+unavailable,Indisponível
+invoiced,Faturado
+processing,Em processamento
+created,Criado
+approved,Aprovado
