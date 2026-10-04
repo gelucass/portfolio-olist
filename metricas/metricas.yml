@@ -1,0 +1,122 @@
+# Camada de métricas: cada KPI é definido UMA vez aqui e traduzido para cada ferramenta de BI.
+#
+# Fonte comum de todas as ferramentas: exports/pedidos_olist.csv (gerado de fct_pedidos pelo pipeline).
+# Colunas: pedido_id, data_compra, status, estado, cidade, categoria, qtd_itens, valor_produtos,
+#          valor_frete, valor_total, entregue (Sim/Não), dias_entrega, entrega_atrasada (Sim/Não), nota_avaliacao
+#
+# - sql: definição canônica, executada pelo scripts/validar_metricas.py para gerar os valores esperados.
+# - powerbi / tableau / metabase / looker_studio: a mesma métrica na linguagem de cada ferramenta.
+#   Power BI assume a tabela fato chamada "pedidos". Metabase usa SQL nativo sobre a tabela "pedidos".
+#
+# Para adicionar ou mudar uma métrica, use a skill /traduzir-metricas-bi.
+
+fonte: exports/pedidos_olist.csv
+
+metricas:
+  - nome: receita
+    rotulo: Receita
+    descricao: Valor dos produtos + frete.
+    formato: moeda
+    sql: sum(valor_total)
+    powerbi: "Receita = SUM ( pedidos[valor_total] )"
+    tableau: "SUM([valor_total])"
+    metabase: "sum(valor_total)"
+    looker_studio: "SUM(valor_total)"
+
+  - nome: pedidos
+    rotulo: Pedidos
+    descricao: Quantidade de pedidos (uma linha por pedido na fonte).
+    formato: inteiro
+    sql: count(*)
+    powerbi: "Pedidos = COUNTROWS ( pedidos )"
+    tableau: "COUNTD([pedido_id])"
+    metabase: "count(*)"
+    looker_studio: "COUNT_DISTINCT(pedido_id)"
+
+  - nome: ticket_medio
+    rotulo: Ticket médio
+    descricao: Receita ÷ pedidos. É uma razão de somas, não a média de uma coluna.
+    formato: moeda
+    sql: sum(valor_total) / count(*)
+    powerbi: "Ticket médio = DIVIDE ( [Receita], [Pedidos] )"
+    tableau: "SUM([valor_total]) / COUNTD([pedido_id])"
+    metabase: "sum(valor_total) / count(*)"
+    looker_studio: "SUM(valor_total) / COUNT_DISTINCT(pedido_id)"
+
+  - nome: nota_media
+    rotulo: Nota média
+    descricao: Média da avaliação do cliente (1 a 5). Pedidos sem avaliação ficam fora da média.
+    formato: decimal
+    sql: avg(nota_avaliacao)
+    powerbi: "Nota média = AVERAGE ( pedidos[nota_avaliacao] )"
+    tableau: "AVG([nota_avaliacao])"
+    metabase: "avg(nota_avaliacao)"
+    looker_studio: "AVG(nota_avaliacao)"
+
+  - nome: prazo_medio
+    rotulo: Prazo médio de entrega (dias)
+    descricao: Dias entre a compra e a entrega, só para pedidos entregues.
+    formato: decimal
+    sql: avg(dias_entrega)
+    powerbi: "Prazo médio = AVERAGE ( pedidos[dias_entrega] )"
+    tableau: "AVG([dias_entrega])"
+    metabase: "avg(dias_entrega)"
+    looker_studio: "AVG(dias_entrega)"
+
+  - nome: pct_atraso
+    rotulo: Entregas com atraso
+    descricao: Pedidos entregues depois da data prometida ÷ pedidos entregues.
+    formato: percentual
+    sql: count(*) filter (where entrega_atrasada = 'Sim') / count(*) filter (where entregue = 'Sim')
+    powerbi: |-
+      % Atraso =
+      DIVIDE (
+          CALCULATE ( [Pedidos], pedidos[entrega_atrasada] = "Sim" ),
+          CALCULATE ( [Pedidos], pedidos[entregue] = "Sim" )
+      )
+    tableau: "SUM(IIF([entrega_atrasada] = 'Sim', 1, 0)) / SUM(IIF([entregue] = 'Sim', 1, 0))"
+    metabase: "1.0 * count(case when entrega_atrasada = 'Sim' then 1 end) / nullif(count(case when entregue = 'Sim' then 1 end), 0)"
+    looker_studio: 'SUM(CASE WHEN entrega_atrasada = "Sim" THEN 1 ELSE 0 END) / SUM(CASE WHEN entregue = "Sim" THEN 1 ELSE 0 END)'
+
+  - nome: nota_no_prazo
+    rotulo: Nota com entrega no prazo
+    descricao: Nota média dos pedidos entregues dentro do prazo.
+    formato: decimal
+    sql: avg(nota_avaliacao) filter (where entrega_atrasada = 'Não')
+    powerbi: 'Nota no prazo = CALCULATE ( [Nota média], pedidos[entrega_atrasada] = "Não" )'
+    tableau: "AVG(IF [entrega_atrasada] = 'Não' THEN [nota_avaliacao] END)"
+    metabase: "avg(case when entrega_atrasada = 'Não' then nota_avaliacao end)"
+    looker_studio: 'AVG(CASE WHEN entrega_atrasada = "Não" THEN nota_avaliacao END)'
+
+  - nome: nota_com_atraso
+    rotulo: Nota com entrega atrasada
+    descricao: Nota média dos pedidos entregues depois do prazo.
+    formato: decimal
+    sql: avg(nota_avaliacao) filter (where entrega_atrasada = 'Sim')
+    powerbi: 'Nota com atraso = CALCULATE ( [Nota média], pedidos[entrega_atrasada] = "Sim" )'
+    tableau: "AVG(IF [entrega_atrasada] = 'Sim' THEN [nota_avaliacao] END)"
+    metabase: "avg(case when entrega_atrasada = 'Sim' then nota_avaliacao end)"
+    looker_studio: 'AVG(CASE WHEN entrega_atrasada = "Sim" THEN nota_avaliacao END)'
+
+  - nome: pct_frete
+    rotulo: Frete sobre produtos
+    descricao: Quanto o frete representa sobre o valor dos produtos.
+    formato: percentual
+    sql: sum(valor_frete) / sum(valor_produtos)
+    powerbi: "% Frete = DIVIDE ( SUM ( pedidos[valor_frete] ), SUM ( pedidos[valor_produtos] ) )"
+    tableau: "SUM([valor_frete]) / SUM([valor_produtos])"
+    metabase: "sum(valor_frete) / sum(valor_produtos)"
+    looker_studio: "SUM(valor_frete) / SUM(valor_produtos)"
+
+# Recortes usados para conferir cada ferramenta: aplique o filtro na ferramenta e compare com metricas/valores_esperados.md.
+recortes:
+  - nome: Total
+    filtro: "true"
+  - nome: Ano 2018
+    filtro: "data_compra >= '2018-01-01'"
+  - nome: Estado SP
+    filtro: "estado = 'SP'"
+  - nome: Categoria Beleza saúde
+    filtro: "categoria = 'Beleza saúde'"
+  - nome: SP em nov/2017 (Black Friday)
+    filtro: "estado = 'SP' and data_compra between '2017-11-01' and '2017-11-30'"

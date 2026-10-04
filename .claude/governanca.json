@@ -1,0 +1,17 @@
+{
+  "_sobre": "Lido por .claude/hooks/proteger_dados.py. Em projeto com dados confidenciais, liste aqui as pastas de extração e os clientes de banco de produção.",
+  "caminhos_bloqueados": [
+    "**/.env",
+    "**/.env.*",
+    "**/credenciais/**",
+    "**/dados_confidenciais/**",
+    "**/*.pem"
+  ],
+  "comandos_bloqueados": [
+    "psql",
+    "bq query",
+    "snowsql",
+    "mysql",
+    "sqlcmd"
+  ]
+}

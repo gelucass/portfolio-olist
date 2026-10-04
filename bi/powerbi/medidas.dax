@@ -1,0 +1,49 @@
+// Gerado por scripts/gerar_pacotes_bi.py a partir de metricas/metricas.yml. Não edite à mão.
+// Cole cada bloco em Nova medida, na tabela _Medidas. Fato: pedidos.
+
+// Receita: Valor dos produtos + frete.  |  formato: "R$ "#,##0.00
+Receita = SUM ( pedidos[valor_total] )
+
+// Pedidos: Quantidade de pedidos (uma linha por pedido na fonte).  |  formato: #,##0
+Pedidos = COUNTROWS ( pedidos )
+
+// Ticket médio: Receita ÷ pedidos. É uma razão de somas, não a média de uma coluna.  |  formato: "R$ "#,##0.00
+Ticket médio = DIVIDE ( [Receita], [Pedidos] )
+
+// Nota média: Média da avaliação do cliente (1 a 5). Pedidos sem avaliação ficam fora da média.  |  formato: 0.00
+Nota média = AVERAGE ( pedidos[nota_avaliacao] )
+
+// Prazo médio de entrega (dias): Dias entre a compra e a entrega, só para pedidos entregues.  |  formato: 0.00
+Prazo médio = AVERAGE ( pedidos[dias_entrega] )
+
+// Entregas com atraso: Pedidos entregues depois da data prometida ÷ pedidos entregues.  |  formato: 0.0%
+% Atraso =
+DIVIDE (
+    CALCULATE ( [Pedidos], pedidos[entrega_atrasada] = "Sim" ),
+    CALCULATE ( [Pedidos], pedidos[entregue] = "Sim" )
+)
+
+// Nota com entrega no prazo: Nota média dos pedidos entregues dentro do prazo.  |  formato: 0.00
+Nota no prazo = CALCULATE ( [Nota média], pedidos[entrega_atrasada] = "Não" )
+
+// Nota com entrega atrasada: Nota média dos pedidos entregues depois do prazo.  |  formato: 0.00
+Nota com atraso = CALCULATE ( [Nota média], pedidos[entrega_atrasada] = "Sim" )
+
+// Frete sobre produtos: Quanto o frete representa sobre o valor dos produtos.  |  formato: 0.0%
+% Frete = DIVIDE ( SUM ( pedidos[valor_frete] ), SUM ( pedidos[valor_produtos] ) )
+
+// ---- Inteligência de tempo (exige a tabela Calendario marcada como tabela de datas) ----
+Receita mês anterior = CALCULATE ( [Receita], DATEADD ( Calendario[Data], -1, MONTH ) )
+
+Var. receita vs mês anterior = DIVIDE ( [Receita] - [Receita mês anterior], [Receita mês anterior] )
+
+// ---- Tabela calculada: Modelagem > Nova tabela ----
+Calendario =
+ADDCOLUMNS (
+    CALENDAR ( MIN ( pedidos[data_compra] ), MAX ( pedidos[data_compra] ) ),
+    "Ano", YEAR ( [Date] ),
+    "Mes", MONTH ( [Date] ),
+    "Ano-Mês", FORMAT ( [Date], "yyyy-mm" ),
+    "Mês", FORMAT ( [Date], "mmm/yy" )
+)
+// Depois: renomeie a coluna [Date] para Data e marque Calendario como tabela de datas.

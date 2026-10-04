@@ -39,6 +39,44 @@ A cada push na `main`, o GitHub Actions roda `dbt build` (modelos + 36 testes), 
 | marts | `mart_painel_mensal` | Somas e contagens por mês × estado × categoria, lidas pelo painel |
 | seeds | `palavras_acentuadas`, `status_pedido` | De-para mantido em CSV, versionado junto do código |
 
+## O mesmo painel em 5 ferramentas
+Os KPIs são definidos **uma vez** em [`metricas/metricas.yml`](metricas/metricas.yml), com a definição em SQL
+e a tradução para cada ferramenta. Um script calcula o gabarito ([`valores_esperados.md`](metricas/valores_esperados.md))
+e o CI falha se o gabarito ou as medidas geradas ficarem desatualizados.
+
+| Ferramenta | Destaque | Pacote |
+|---|---|---|
+| Web | dbt + CI + deploy automático | [painel](https://gelucass.github.io/portfolio-olist/) |
+| Power BI | Modelo estrela, DAX, inteligência de tempo, drill-through | [`bi/powerbi`](bi/powerbi/) |
+| Tableau | LOD expressions, parâmetros, ações de painel | [`bi/tableau`](bi/tableau/) |
+| Metabase | SQL com filtros de campo, painel via API | [`bi/metabase`](bi/metabase/) |
+| Looker Studio | Campos na fonte, comparação de período nativa | [`bi/looker-studio`](bi/looker-studio/) |
+
+Exemplo, a mesma métrica (% de entregas com atraso) em cada linguagem:
+
+| | Expressão |
+|---|---|
+| SQL | `count(*) filter (where entrega_atrasada = 'Sim') / count(*) filter (where entregue = 'Sim')` |
+| DAX | `DIVIDE ( CALCULATE ( [Pedidos], pedidos[entrega_atrasada] = "Sim" ), CALCULATE ( [Pedidos], pedidos[entregue] = "Sim" ) )` |
+| Tableau | `SUM(IIF([entrega_atrasada] = 'Sim', 1, 0)) / SUM(IIF([entregue] = 'Sim', 1, 0))` |
+| Looker Studio | `SUM(CASE WHEN entrega_atrasada = "Sim" THEN 1 ELSE 0 END) / SUM(CASE WHEN entregue = "Sim" THEN 1 ELSE 0 END)` |
+
+## Como uso o Claude neste projeto
+O repositório traz o kit que uso com o [Claude Code](https://claude.com/claude-code) no dia a dia de dados,
+em [`.claude/`](.claude/) e [`CLAUDE.md`](CLAUDE.md):
+
+| Peça | Tipo | O que faz |
+|---|---|---|
+| [`traduzir-metricas-bi`](.claude/skills/traduzir-metricas-bi/SKILL.md) | Skill | Define um KPI uma vez e traduz para DAX, Tableau, Metabase e Looker, com as armadilhas de cada ferramenta documentadas em `references/` |
+| [`modelo-dbt`](.claude/skills/modelo-dbt/SKILL.md) | Skill | Cria modelos no padrão do projeto: camada certa, grão declarado, testes e documentação |
+| [`dados-confidenciais`](.claude/skills/dados-confidenciais/SKILL.md) | Skill | Modo de trabalho para dados de cliente: o Claude recebe só a estrutura e desenvolve sobre dados sintéticos gerados por script |
+| [`revisor-dbt`](.claude/agents/revisor-dbt.md) | Agent | Revisa mudanças no dbt antes do commit: grão, joins que duplicam linhas, testes e nomes |
+| [`auditor-bi`](.claude/agents/auditor-bi.md) | Agent | Investiga por que um número do Power BI/Tableau/Metabase/Looker não bate com o gabarito |
+| [`proteger_dados.py`](.claude/hooks/proteger_dados.py) | Hook | Bloqueia o Claude de ler pastas sensíveis, `.env` e de rodar clientes de banco de produção, conforme [`governanca.json`](.claude/governanca.json) |
+
+A ideia central da governança: **o Claude só vê o que passa por ele**. Em projetos com dados de cliente,
+ele escreve e testa o código sobre dados sintéticos, e o código roda no ambiente da empresa.
+
 ## Decisões e trade-offs
 - **DuckDB em vez de um warehouse na nuvem.** O volume (~100 mil pedidos) cabe em memória, o CI roda em segundos e o projeto não tem custo. Com o adapter dbt certo, os modelos migram para BigQuery ou Snowflake praticamente sem mudança.
 - **Parquet versionado no repositório.** São 19 MB contra 120 MB de CSV. O CI fica autocontido, sem credenciais do Kaggle.

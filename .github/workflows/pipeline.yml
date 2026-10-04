@@ -42,6 +42,13 @@ jobs:
       - name: Exportar painel e CSV do Looker
         run: python scripts/exportar.py
 
+      - name: Conferir camada de métricas e pacotes de BI
+        # Regenera o gabarito e as medidas de cada ferramenta; falha se o commit estiver desatualizado.
+        run: |
+          python scripts/validar_metricas.py
+          python scripts/gerar_pacotes_bi.py
+          git diff --exit-code -- metricas bi
+
       - uses: actions/upload-pages-artifact@v3
         with:
           path: _site
