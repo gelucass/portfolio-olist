@@ -1,4 +1,7 @@
-# O mesmo painel em 5 ferramentas
+# Métricas e roteiros prontos para 5 ferramentas
+
+Cada pasta traz as medidas na linguagem da ferramenta e o roteiro para montar o painel nela. O painel
+publicado é a versão web; nas demais ferramentas, o painel é montado seguindo o roteiro.
 
 As métricas são definidas uma vez em [`metricas/metricas.yml`](../metricas/metricas.yml) e cada ferramenta
 recebe a tradução na própria linguagem. Todas leem a mesma fonte (`exports/pedidos_olist.csv`, gerado

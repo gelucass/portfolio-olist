@@ -4,7 +4,11 @@
 
 Pipeline de dados completo, do CSV bruto ao painel publicado, com 98.353 pedidos da Olist (jan/2017 a ago/2018).
 
-**[Abrir o painel](https://gelucass.github.io/portfolio-olist/)** · **[Documentação dos modelos (dbt docs)](https://gelucass.github.io/portfolio-olist/docs/)**
+**[Abrir o painel](https://gelucass.github.io/portfolio-olist/)** · **[Documentação dos modelos (dbt docs)](https://gelucass.github.io/portfolio-olist/docs/)** · **[English summary](#english-summary)**
+
+Feito por **George Lucas**, Analytics Engineer · [LinkedIn](https://www.linkedin.com/in/george-lucas-274ba1104/) · [GitHub](https://github.com/gelucass)
+
+[![Painel Olist](assets/painel.png)](https://gelucass.github.io/portfolio-olist/)
 
 ## Principais achados
 - **R$ 15,8 mi** em receita, ticket médio de **R$ 160,51**.
@@ -39,9 +43,10 @@ A cada push na `main`, o GitHub Actions roda `dbt build` (modelos + 36 testes), 
 | marts | `mart_painel_mensal` | Somas e contagens por mês × estado × categoria, lidas pelo painel |
 | seeds | `palavras_acentuadas`, `status_pedido` | De-para mantido em CSV, versionado junto do código |
 
-## O mesmo painel em 5 ferramentas
+## Métricas definidas uma vez, prontas para 5 ferramentas
 Os KPIs são definidos **uma vez** em [`metricas/metricas.yml`](metricas/metricas.yml), com a definição em SQL
-e a tradução para cada ferramenta. Um script calcula o gabarito ([`valores_esperados.md`](metricas/valores_esperados.md))
+e a tradução para cada ferramenta. O painel publicado é a versão web; para Power BI, Tableau, Metabase e
+Looker Studio, cada pasta traz as medidas na linguagem da ferramenta e o roteiro para montar o mesmo painel. Um script calcula o gabarito ([`valores_esperados.md`](metricas/valores_esperados.md))
 e o CI falha se o gabarito ou as medidas geradas ficarem desatualizados.
 
 | Ferramenta | Destaque | Pacote |
@@ -103,3 +108,14 @@ python -m http.server -d _site 8000   # abra http://localhost:8000
 Os Parquet já estão no repositório. Para refazê-los a partir da origem, baixe o [dataset da Olist no Kaggle](https://www.kaggle.com/datasets/olistbr/brazilian-ecommerce), extraia os CSVs em `raw/` e rode `python scripts/converter_raw.py`.
 
 Dados: Olist, licença CC BY-NC-SA 4.0.
+
+## English summary
+End-to-end analytics engineering project on the public Olist e-commerce dataset (98,353 orders, Jan 2017 to Aug 2018).
+
+- **Pipeline:** raw CSV → Parquet → dbt + DuckDB (staging, intermediate, marts) with 36 tests. GitHub Actions runs `dbt build` on every push and only publishes the dashboard if every test passes.
+- **Dashboard:** [interactive web dashboard](https://gelucass.github.io/portfolio-olist/) on GitHub Pages, plus [dbt docs](https://gelucass.github.io/portfolio-olist/docs/).
+- **Metrics layer:** each KPI is defined once in `metricas/metricas.yml` and translated to DAX, Tableau, Metabase and Looker Studio, with a generated answer key that CI checks against.
+- **Key finding:** late deliveries drop the average review score from **4.29** (on time) to **2.27** (late); 6.8% of deliveries arrive late.
+- **AI tooling:** a Claude Code kit (skills, review agents and a data-protection hook) used to build and review the project.
+
+Built by **George Lucas**, Analytics Engineer · [LinkedIn](https://www.linkedin.com/in/george-lucas-274ba1104/)

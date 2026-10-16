@@ -1,7 +1,7 @@
 # Portfólio Olist — instruções para o Claude
 
 Pipeline de dados do dataset público da Olist: Parquet → dbt + DuckDB → painel web (GitHub Pages) e
-o mesmo painel em Power BI, Tableau, Metabase e Looker Studio, todos com as mesmas métricas.
+métricas e roteiros para montar o mesmo painel em Power BI, Tableau, Metabase e Looker Studio.
 
 ## Estrutura
 - `data/raw/` Parquet de origem (versionado). `olist_dbt/` projeto dbt (staging → intermediate → marts).
